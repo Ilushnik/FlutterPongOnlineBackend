@@ -61,13 +61,11 @@ namespace FlutterPongOnlineBackend.Controllers
                 UsersInLobby.Select(x => x.Value.playerPosition).ToList());
         }
 
-        public async Task UpdateGamePosition(LeaderGameData gamedata)
+        public async Task PlayerMakeAGoal(GameScore gameScore)
         {
-            _logger.LogInformation($"UpdateGamePosition");
-
-            if (gamedata.bottomScore >= 10 || gamedata.topScore >= 10)
+            if (gameScore.bottomScore >= 10 || gameScore.topScore >= 10)
             {
-                await Clients.All.SendAsync("FinishGame", gamedata);
+                await Clients.All.SendAsync("FinishGame", gameScore);
                 foreach (var user in UsersInLobby)
                 {
                     user.Value.playerPosition = "";
@@ -75,14 +73,18 @@ namespace FlutterPongOnlineBackend.Controllers
                 await GetConnectedUsers();
                 return;
             }
-
-            await Clients.Others.SendAsync("UpdateGamePosition", gamedata);
         }
 
-        public async Task UpdatePlayerPosition(PlayerPosition gamedata)
+        public async Task UpdateGamePosition(BallPosition ballPosition)
+        {
+            _logger.LogInformation($"UpdateGamePosition");
+            await Clients.Others.SendAsync("UpdateGamePosition", ballPosition);
+        }
+
+        public async Task UpdatePlayerPosition(PlayerPosition playerPosition)
         {
             _logger.LogInformation($"UpdatePlayerPosition");
-            await Clients.Others.SendAsync("UpdatePlayerPosition", gamedata);
+            await Clients.Others.SendAsync("UpdatePlayerPosition", playerPosition);
         }
 
 
@@ -111,7 +113,7 @@ namespace FlutterPongOnlineBackend.Controllers
             }
         }
 
-        public class LeaderGameData
+        public class BallPosition
         {
             public double ballPosX { get; set; }
             public double ballPosY { get; set; }
@@ -119,8 +121,6 @@ namespace FlutterPongOnlineBackend.Controllers
             public double ballYSpeed { get; set; }
             public int ballDirectionX { get; set; }
             public int ballDirectionY { get; set; }
-            public int topScore { get; set; }
-            public int bottomScore { get; set; }
         }
 
         public class PlayerPosition
@@ -132,6 +132,12 @@ namespace FlutterPongOnlineBackend.Controllers
         {
             public int width { get; set; }
             public int height { get; set; }
+        }
+
+        public class GameScore
+        {
+            public int topScore { get; set; }
+            public int bottomScore { get; set; }
         }
     }
 }
